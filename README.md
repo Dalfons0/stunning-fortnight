@@ -46,7 +46,18 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+## Redis
 
+```bash
+# Start redis
+$ docker run -p 6379:6379 --name some-redis -d redis
+
+# Conect to the container
+$ docker exec -it some-redis bash
+
+# Monitor the interaction with the instance
+$ redis-cli MONITOR
+```
 ## Test
 
 ```bash
