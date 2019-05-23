@@ -3,7 +3,7 @@ import { CalendarService } from './calendar.service';
 
 describe('CalendarService', () => {
   let service: CalendarService;
-  
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [CalendarService],

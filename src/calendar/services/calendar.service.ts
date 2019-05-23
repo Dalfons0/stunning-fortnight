@@ -1,18 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { State } from 'src/shared/model';
+import { Injectable, Inject } from '@nestjs/common';
+import { Appointment } from '../interfaces/appointment.interface';
 import { createClient, RedisClient } from 'redis';
 import { promisify } from 'util';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateAppointmentCommand } from '../commands/impl/create-appointment.command';
 
 @Injectable()
 export class CalendarService {
     private lrange: (key: string, start: number, stop: number) => Promise<string[]>;
-    private hgtall: (key: string) => Promise<{[key: string]: string}>;
-    private client: RedisClient;
 
-    constructor() {
-        this.client = createClient();
-        this.lrange = promisify(this.client.lrange).bind(this.client);
-        this.hgtall = promisify(this.client.hgetall).bind(this.client);
+    constructor(private commandBus: CommandBus, private client: RedisClient) {
+        this.lrange = promisify(client.lrange).bind(client);
     }
 
     getCalendarStates(user: string, queryMonth: number, queryYear: number): Promise<string[]> {
@@ -21,13 +19,17 @@ export class CalendarService {
         const year = queryYear || currentDate.getFullYear();
         const key = `${user}:${month}:${year}`;
         return this.lrange(key, 0, -1);
-        // return this.hgtall(key);
     }
 
-    async crateCalendarState(user: string, state: State): Promise<void> {
+    async crateCalendarState(user: string, state: any): Promise<void> {
         const startDate = new Date(state.startDate);
         const key = `${user}:${startDate.getMonth()}:${startDate.getFullYear()}`;
         this.client.rpush(key,  JSON.stringify(state));
-        // this.client.hmset(key, state);
+    }
+
+    async createAppointment(userId: string, appointment: Appointment) {
+        this.commandBus.execute(
+            new CreateAppointmentCommand(userId, appointment),
+        );
     }
 }
