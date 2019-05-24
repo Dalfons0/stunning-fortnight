@@ -13,7 +13,7 @@ export class CalendarService {
         this.lrange = promisify(client.lrange).bind(client);
     }
 
-    getCalendarStates(user: string, queryMonth: number, queryYear: number): Promise<string[]> {
+    queryCalendarAppointments(user: string, queryMonth: number, queryYear: number): Promise<string[]> {
         const currentDate = new Date();
         const month = queryMonth || currentDate.getMonth();
         const year = queryYear || currentDate.getFullYear();
@@ -21,13 +21,7 @@ export class CalendarService {
         return this.lrange(key, 0, -1);
     }
 
-    async crateCalendarState(user: string, state: any): Promise<void> {
-        const startDate = new Date(state.startDate);
-        const key = `${user}:${startDate.getMonth()}:${startDate.getFullYear()}`;
-        this.client.rpush(key,  JSON.stringify(state));
-    }
-
-    async createAppointment(userId: string, appointment: Appointment) {
+    createCalendarAppointment(userId: string, appointment: Appointment) {
         this.commandBus.execute(
             new CreateAppointmentCommand(userId, appointment),
         );
